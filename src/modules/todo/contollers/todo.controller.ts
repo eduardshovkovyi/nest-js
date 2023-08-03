@@ -11,17 +11,30 @@ import {
 import { CreateDto, UpdateDto } from './dto';
 import { TodoService } from '../services/todo.service';
 import { Todo } from '../entities/todo.entity';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { NotFoundResponse } from './type';
 
+@ApiTags('todo')
 @Controller('rest/todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'get all todo',
+    type: [Todo],
+  })
   getAllAction(): Promise<Todo[]> {
     return this.todoService.findAll();
   }
 
   @Get(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'get todo by id',
+    type: Todo,
+  })
   async getOneAction(@Param('id') id: number): Promise<Todo> {
     const todo = await this.todoService.findOne(id);
     if (todo === null) {
@@ -31,6 +44,12 @@ export class TodoController {
   }
 
   @Post()
+  @ApiResponse({
+    status: 200,
+    description: 'create todo',
+    type: Todo,
+  })
+  @ApiBody({ type: CreateDto })
   createAction(@Body() createDto: CreateDto): Promise<Todo> {
     const todo = new Todo();
     todo.title = createDto.title;
@@ -41,6 +60,12 @@ export class TodoController {
   }
 
   @Put(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'update todo',
+    type: Todo,
+  })
+  @ApiBody({ type: UpdateDto })
   async updateAction(
     @Param('id') id: number,
     @Body() { title, isCompleted = false }: UpdateDto,
@@ -55,6 +80,15 @@ export class TodoController {
   }
 
   @Delete(':id')
+  @ApiResponse({
+    status: 200,
+    description: 'delete todo',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found',
+    type: NotFoundResponse,
+  })
   async deleteAction(@Param('id') id: number): Promise<{ success: boolean }> {
     const todo = await this.todoService.findOne(id);
     if (todo === undefined) {
